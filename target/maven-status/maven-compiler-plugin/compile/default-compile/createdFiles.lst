@@ -1,0 +1,6 @@
+com\anokata\socketserverdb\ClientHandler.class
+com\anokata\socketserverdb\NetworkManager.class
+com\anokata\socketserverdb\DatabaseHandler.class
+com\anokata\socketserverdb\ServerSocketHandler.class
+com\anokata\socketserverdb\SocketServerDB.class
+com\anokata\socketserverdb\models\Etudiant.class
