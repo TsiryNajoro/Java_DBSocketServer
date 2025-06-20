@@ -1,29 +1,26 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.anokata.socketserverdb.models;
 
 import java.io.Serializable;
-/**
- *
- * @author Na
- */
-public class Etudiant implements Serializable {
-    private String numero;      // Numéro de l'étudiant (clé primaire)
-    private String nom;         // Nom de l'étudiant
-    private String adresse;     // Adresse de l'étudiant
-    private double bourse;      // Montant de la bourse (en double, peut être un montant d'argent)
 
-    // Constructeur
-    public Etudiant(String numero, String nom, String adresse, double bourse) {
+public class Etudiant implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
+    private String numero;
+    private String nom;
+    private String adresse;
+    private double bourse;
+    private String action;
+
+    // Constructeur, getters et setters
+
+    public Etudiant(String numero, String nom, String adresse, double bourse, String action) {
         this.numero = numero;
         this.nom = nom;
         this.adresse = adresse;
         this.bourse = bourse;
+        this.action = action;
     }
 
-    // Getters et setters
     public String getNumero() {
         return numero;
     }
@@ -56,9 +53,11 @@ public class Etudiant implements Serializable {
         this.bourse = bourse;
     }
 
-    // Optionnel : Méthode toString pour une représentation lisible de l'objet
-    @Override
-    public String toString() {
-        return "Etudiant [numero=" + numero + ", nom=" + nom + ", adresse=" + adresse + ", bourse=" + bourse + "]";
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
     }
 }

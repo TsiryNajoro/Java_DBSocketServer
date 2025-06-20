@@ -11,4 +11,18 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <exec.mainClass>com.anokata.socketserverdb.SocketServerDB</exec.mainClass>
     </properties>
+    
+    <!-- Dépendance PostgreSQL -->
+    <dependencies>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
+    </dependencies>
 </project>

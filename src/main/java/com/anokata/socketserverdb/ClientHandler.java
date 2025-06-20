@@ -4,12 +4,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import com.anokata.socketserverdb.models.Etudiant;
+import java.util.List;
 
 public class ClientHandler implements Runnable {
     private final Socket clientSocket;
 
-    // Constructeur pour initialiser le Socket du client
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
     }
@@ -17,38 +16,94 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try (
-            // Crée un ObjectInputStream pour lire les objets envoyés par le client
             ObjectInputStream inputStream = new ObjectInputStream(clientSocket.getInputStream());
-            // Crée un ObjectOutputStream pour envoyer des objets vers le client
             ObjectOutputStream outputStream = new ObjectOutputStream(clientSocket.getOutputStream())
         ) {
-            // Lire l'objet envoyé par le client
-            Object obj = inputStream.readObject();
+            String etudiantData = (String) inputStream.readObject(); 
+            
+            String[] data = etudiantData.replace("{", "").replace("}", "").split(",");
+            String numero = "", nom = "", adresse = "";
+            double bourse = 0;
+            String action = "";
 
-            // Traitement du message reçu (ex : ajout d'un étudiant à la base de données)
-            if (obj instanceof Etudiant) {
-                Etudiant etudiant = (Etudiant) obj;
-                
-                // Appel de DatabaseHandler pour ajouter l'étudiant à la base de données
-                DatabaseHandler dbHandler = new DatabaseHandler();
-                dbHandler.ajouterEtudiant(etudiant.getNumero(), etudiant.getNom(), etudiant.getAdresse(), etudiant.getBourse());
+            for (String field : data) {
+                String[] keyValue = field.split(":");
+                switch (keyValue[0].trim().replace("\"", "")) {
+                    case "numero":
+                        numero = keyValue[1].trim().replace("\"", "");
+                        break;
+                    case "nom":
+                        nom = keyValue[1].trim().replace("\"", "");
+                        break;
+                    case "adresse":
+                        adresse = keyValue[1].trim().replace("\"", "");
+                        break;
+                    case "bourse":
+                        bourse = Double.parseDouble(keyValue[1].trim());
+                        break;
+                    case "action":
+                        action = keyValue[1].trim().replace("\"", "");
+                        break;
+                }
+            }
 
-                // Envoi d'un message de confirmation au client
-                outputStream.writeObject("Enregistrement ajouté");
+            DatabaseHandler dbHandler = new DatabaseHandler();
+            switch (action) {
+                case "Ajout":
+                    dbHandler.ajouterEtudiant(numero, nom, adresse, bourse);
+                    outputStream.writeObject("OK");
+                    sendAllEtudiants(outputStream, dbHandler);
+                    System.out.println("requête d'ajout enclenchée");
+                    break;
+                case "Modification":
+                    dbHandler.modifierEtudiant(numero, nom, adresse, bourse);
+                    outputStream.writeObject("OK");
+                    sendAllEtudiants(outputStream, dbHandler);
+                    break;
+                case "Suppression":
+                    dbHandler.supprimerEtudiant(numero);
+                    outputStream.writeObject("OK");
+                    sendAllEtudiants(outputStream, dbHandler);
+                    break;
+                case "DemandeListe":  // Nouveau cas
+                    outputStream.writeObject("OK");
+                    sendAllEtudiants(outputStream, dbHandler);
+                    break;
+                case "GET_ALL":
+                    outputStream.writeObject("OK");
+                    sendAllEtudiants(outputStream, dbHandler);
+                    break;
+
+                default:
+                    outputStream.writeObject("Action non reconnue");
+                    break;
             }
         } catch (IOException | ClassNotFoundException e) {
-            // Affiche les erreurs s'il y en a
-            
+            e.printStackTrace();
         } finally {
             try {
-                // Fermer le socket une fois le traitement terminé
                 if (clientSocket != null && !clientSocket.isClosed()) {
                     clientSocket.close();
                 }
             } catch (IOException e) {
-                // Si l'on ne peut pas fermer le socket, affiche l'erreur
-                
+                e.printStackTrace();
             }
         }
     }
+    
+    private void sendAllEtudiants(ObjectOutputStream outputStream, DatabaseHandler dbHandler) throws IOException {
+    List<String> allEtudiantsJson = dbHandler.getAllEtudiantsAsJsonStrings();
+
+    StringBuilder jsonArray = new StringBuilder("[");
+    for (int i = 0; i < allEtudiantsJson.size(); i++) {
+        jsonArray.append(allEtudiantsJson.get(i));
+        if (i < allEtudiantsJson.size() - 1) {
+            jsonArray.append(",");
+        }
+    }
+    jsonArray.append("]");
+
+    outputStream.writeObject(jsonArray.toString()); // Envoi final
+}
+
 }
